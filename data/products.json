@@ -1,0 +1,12 @@
+[
+  {"sku": "KUB-001", "name": "Kubek ceramiczny Kraków", "price": 29.99, "category": "dom"},
+  {"sku": "KUB-002", "name": "Kubek termiczny 450 ml", "price": 64.90, "category": "dom"},
+  {"sku": "TSH-001", "name": "Koszulka bawełniana czarna", "price": 49.99, "category": "odzież"},
+  {"sku": "TSH-002", "name": "Koszulka bawełniana biała", "price": 49.99, "category": "odzież"},
+  {"sku": "BLU-001", "name": "Bluza z kapturem", "price": 159.00, "category": "odzież"},
+  {"sku": "NOT-001", "name": "Notes w kropki A5", "price": 24.50, "category": "biuro"},
+  {"sku": "DLG-001", "name": "Długopis żelowy", "price": 3.99, "category": "biuro"},
+  {"sku": "PLE-001", "name": "Plecak miejski 20 l", "price": 219.00, "category": "akcesoria"},
+  {"sku": "KSI-001", "name": "Książka: Czysty kod", "price": 69.00, "category": "książki", "vat_rate": 0.05},
+  {"sku": "KSI-002", "name": "Książka: Pragmatyczny programista", "price": 79.00, "category": "książki", "vat_rate": 0.05}
+]

@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zadania: pierwsze kroki w Claude Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f5f7f9;
+  --sheet: #ffffff;
+  --ink: #16202c;
+  --muted: #586373;
+  --rule: #d8dee6;
+  --code-bg: #eef2f5;
+  --pass: #0b7a5f;
+  --pass-soft: #e2f3ee;
+  --hint: #9a6200;
+  --hint-soft: #fbf1df;
+  --bonus: #5a4fb0;
+  --focus: #1f5fd1;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #11161d; --sheet: #171d26; --ink: #e5e9ef; --muted: #9aa5b4; --rule: #2a3340;
+    --code-bg: #1d2530; --pass: #3cc59d; --pass-soft: #163229; --hint: #e3aa4f; --hint-soft: #2e2516;
+    --bonus: #a59cf0; --focus: #7aa7ff;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #11161d; --sheet: #171d26; --ink: #e5e9ef; --muted: #9aa5b4; --rule: #2a3340;
+  --code-bg: #1d2530; --pass: #3cc59d; --pass-soft: #163229; --hint: #e3aa4f; --hint-soft: #2e2516;
+  --bonus: #a59cf0; --focus: #7aa7ff;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased;
+}
+a { color: var(--focus); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+code, pre, kbd { font-family: var(--mono); font-size: 0.875em; }
+code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+kbd {
+  border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px;
+  padding: 0 0.35em; background: var(--sheet); white-space: nowrap;
+}
+
+/* Nagłówek */
+.top { border-bottom: 1px solid var(--rule); background: var(--sheet); }
+.top-inner { max-width: 1120px; margin: 0 auto; padding: 40px 24px 28px; }
+.top h1 { font-size: 2.25rem; line-height: 1.15; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; }
+.lead { max-width: 64ch; color: var(--muted); margin: 0 0 28px; font-size: 1.0625rem; }
+
+/* Tryb pracy */
+.mode-wrap { margin: 0 0 28px; }
+.mode { display: inline-grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--rule); border-radius: 10px; padding: 4px; gap: 4px; background: var(--paper); }
+.mode button {
+  font: inherit; text-align: left; border: 0; border-radius: 7px; padding: 8px 16px; cursor: pointer;
+  background: transparent; color: var(--muted); display: grid; gap: 1px; min-width: 210px;
+}
+.mode button strong { font-weight: 600; font-size: 1rem; color: inherit; }
+.mode button small { font-size: 0.8125rem; }
+.mode button[aria-checked="true"] { background: var(--sheet); color: var(--ink); box-shadow: 0 0 0 1px var(--rule); }
+.mode button[aria-checked="true"] strong { color: var(--pass); }
+.mode-note { margin: 10px 0 0; color: var(--muted); font-size: 0.9375rem; max-width: 64ch; }
+:root[data-mode="magic"] .v-dev { display: none; }
+:root:not([data-mode="magic"]) .v-magic { display: none; }
+
+.budget-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+.budget-head strong { font-weight: 600; }
+.budget-head .clock { font-family: var(--mono); color: var(--muted); font-size: 0.875rem; }
+.budget { display: flex; gap: 3px; height: 44px; }
+.seg {
+  position: relative; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper);
+  min-width: 18px; display: flex; align-items: flex-end; padding: 4px 6px; overflow: hidden;
+  text-decoration: none; color: var(--muted); font-family: var(--mono); font-size: 0.75rem;
+}
+.seg .fill { position: absolute; inset: 0; width: 0; background: var(--pass-soft); transition: width .4s ease; }
+.seg span { position: relative; }
+.seg.done { border-color: var(--pass); color: var(--pass); }
+.seg.bonus { border-style: dashed; }
+.seg.hidden { display: none; }
+.controls { display: flex; gap: 20px; align-items: center; margin-top: 18px; flex-wrap: wrap; font-size: 0.9375rem; }
+.controls label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+.btn-quiet {
+  font: inherit; font-size: 0.875rem; color: var(--muted); background: none; border: 1px solid var(--rule);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer;
+}
+.btn-quiet:hover { color: var(--ink); border-color: var(--muted); }
+
+/* Układ */
+.layout { max-width: 1120px; margin: 0 auto; padding: 32px 24px 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; }
+.rail { position: sticky; top: 24px; align-self: start; font-size: 0.9375rem; }
+.rail ol { list-style: none; margin: 0; padding: 0; }
+.rail li a {
+  display: grid; grid-template-columns: 22px 1fr auto; gap: 6px; padding: 6px 8px; border-radius: 6px;
+  text-decoration: none; color: var(--muted);
+}
+.rail li a:hover { background: var(--sheet); color: var(--ink); }
+.rail .n { font-family: var(--mono); font-size: 0.8125rem; padding-top: 2px; }
+.rail .m { font-family: var(--mono); font-size: 0.75rem; padding-top: 3px; }
+.rail li.done a { color: var(--pass); }
+.rail li.done .n::before { content: "✓"; }
+.rail li.done .n span { display: none; }
+.rail li.bonus.hidden { display: none; }
+.rail .extra { border-top: 1px solid var(--rule); margin-top: 10px; padding-top: 10px; }
+
+main { min-width: 0; max-width: 780px; }
+
+/* Moduł */
+.module { margin-bottom: 64px; scroll-margin-top: 24px; }
+.module.hidden { display: none; }
+.mod-head { display: grid; grid-template-columns: 56px 1fr; gap: 0 16px; margin-bottom: 20px; }
+.mod-num {
+  grid-row: span 3; width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--ink);
+  display: grid; place-items: center; font-family: var(--mono); font-size: 1.25rem; font-weight: 500;
+}
+.module.done .mod-num { border-color: var(--pass); color: var(--pass); }
+.module.is-bonus .mod-num { border-style: dashed; border-color: var(--bonus); color: var(--bonus); }
+.mod-head h2 { margin: 2px 0 2px; font-size: 1.5rem; line-height: 1.25; font-weight: 600; }
+.mod-meta { color: var(--muted); font-size: 0.875rem; display: flex; gap: 14px; flex-wrap: wrap; }
+.mod-meta .tag { color: var(--bonus); }
+.goal { margin: 8px 0 0; max-width: 64ch; }
+
+/* Zadanie */
+.task { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; margin: 0 0 12px; }
+.task.checked { border-color: var(--pass); }
+.task-head { display: flex; gap: 12px; align-items: flex-start; }
+.task-head input { width: 20px; height: 20px; margin-top: 3px; accent-color: var(--pass); flex-shrink: 0; cursor: pointer; }
+.task-head label { font-weight: 600; cursor: pointer; }
+.task.checked .task-head label { color: var(--pass); }
+.task-body { padding-left: 32px; }
+.task-body > p { margin: 6px 0 10px; max-width: 66ch; }
+.task-body ul, .task-body ol { margin: 6px 0 10px; padding-left: 20px; max-width: 66ch; }
+
+.prompt { margin: 10px 0; border-left: 3px solid var(--pass); background: var(--code-bg); border-radius: 0 6px 6px 0; position: relative; }
+.prompt-label { font-size: 0.75rem; color: var(--muted); padding: 8px 12px 0; }
+.prompt pre { margin: 0; padding: 4px 92px 12px 12px; white-space: pre-wrap; word-break: break-word; font-size: 0.8125rem; line-height: 1.55; }
+.prompt.file { border-left-color: var(--muted); }
+.prompt.shell { border-left-color: var(--ink); }
+.copy {
+  position: absolute; top: 8px; right: 8px; font: 500 0.75rem var(--sans); color: var(--ink);
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 5px; padding: 3px 9px; cursor: pointer;
+}
+.copy:hover { border-color: var(--muted); }
+.copy.ok { color: var(--pass); border-color: var(--pass); }
+
+.cmds { margin: 12px 0 4px; border-top: 1px solid var(--rule); }
+.cmd { border-bottom: 1px solid var(--rule); }
+.cmd summary {
+  list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0, auto) 1fr 16px;
+  gap: 14px; align-items: baseline; padding: 9px 2px;
+}
+.cmd summary::-webkit-details-marker { display: none; }
+.cmd summary code { white-space: nowrap; font-size: 0.8125rem; }
+.cmd summary .short { color: var(--muted); font-size: 0.9375rem; }
+.cmd summary::after { content: "+"; font-family: var(--mono); color: var(--muted); justify-self: end; }
+.cmd[open] summary::after { content: "−"; }
+.cmd-body { padding: 0 2px 14px; display: grid; gap: 8px; font-size: 0.9375rem; }
+.cmd-body p { margin: 0; max-width: 66ch; }
+.cmd-body .what strong { font-weight: 600; }
+.cmd-body .tip { background: var(--hint-soft); border-radius: 6px; padding: 8px 12px; }
+.cmd-body .tip strong { color: var(--hint); font-weight: 600; }
+
+.done-box { margin-top: 14px; padding: 12px 16px; border: 1px dashed var(--pass); border-radius: 10px; font-size: 0.9375rem; }
+.done-box h3 { margin: 0 0 4px; font-size: 0.9375rem; font-weight: 600; color: var(--pass); }
+.done-box ul { margin: 0; padding-left: 20px; }
+
+.note { font-size: 0.9375rem; background: var(--hint-soft); border-radius: 8px; padding: 10px 14px; margin: 10px 0; max-width: 66ch; }
+.note strong { color: var(--hint); }
+
+/* Ściąga */
+.cheat h2 { font-size: 1.5rem; font-weight: 600; margin: 0 0 6px; }
+.cheat > p { color: var(--muted); margin: 0 0 16px; }
+.cheat table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.cheat th, .cheat td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.cheat th { font-weight: 600; font-size: 0.875rem; color: var(--muted); background: var(--paper); }
+.cheat td:first-child { white-space: nowrap; }
+.cheat td.mod { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); white-space: nowrap; }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; gap: 0; }
+  .rail { display: none; }
+  .top h1 { font-size: 1.75rem; }
+  .task-body { padding-left: 0; }
+  .cmd summary { grid-template-columns: 1fr 16px; }
+  .cmd summary .short { grid-column: 1; }
+  .cheat td:first-child { white-space: normal; }
+  .cheat td code { word-break: break-word; }
+  .mode { display: grid; width: 100%; }
+  .mode button { min-width: 0; padding: 8px 10px; }
+  .cheat th:last-child, .cheat td.mod { display: none; }
+}
+@media (max-width: 520px) {
+  .seg span { display: none; }
+  .budget { height: 28px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <h1>Pierwsze kroki w Claude Code</h1>
+    <p class="lead">Jedenaście modułów na projekcie <code>shopcart</code>: od pierwszego pytania o kod, przez naprawę błędów z testami i planowanie refaktoryzacji, po własne skille, hooki i równoległe sesje. Każdy moduł kończy się czymś, co da się sprawdzić.</p>
+    <div class="mode-wrap">
+      <div class="mode" role="radiogroup" aria-label="Sposób pracy">
+        <button type="button" role="radio" data-mode="dev" aria-checked="true"><strong>Dev</strong><small>komendy w terminalu</small></button>
+        <button type="button" role="radio" data-mode="magic" aria-checked="false"><strong>Magician</strong><small>wszystko przez rozmowę z Claude</small></button>
+      </div>
+      <p class="mode-note" id="mode-note"></p>
+    </div>
+    <div class="budget-head">
+      <strong id="progress-text">Ukończono 0 z 0 zadań</strong>
+      <span class="clock" id="clock">90 min</span>
+    </div>
+    <div class="budget" id="budget" aria-label="Budżet czasu modułów"></div>
+    <div class="controls">
+      <label><input type="checkbox" id="show-bonus"> Pokaż moduł dodatkowy (+15 min)</label>
+      <button class="btn-quiet" type="button" id="reset">Wyczyść postęp</button>
+      <button class="btn-quiet" type="button" id="theme">Zmień motyw</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="rail" aria-label="Moduły">
+    <ol id="rail"></ol>
+    <div class="extra"><a href="#sciaga">Ściąga komend</a></div>
+  </nav>
+  <main>
+    <div id="modules"></div>
+    <section class="cheat" id="sciaga">
+      <h2>Ściąga komend</h2>
+      <p>Wszystkie komendy z zadań w jednym miejscu. W kolumnie po prawej moduł, w którym pojawiają się po raz pierwszy.</p>
+      <table>
+        <thead><tr><th>Komenda</th><th>Co robi</th><th>Moduł</th></tr></thead>
+        <tbody id="cheat-body"></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<!-- Treść plików do skopiowania -->
+<script type="text/plain" id="f-claudemd"># shopcart
+
+Sklep internetowy w Pythonie 3.10+: katalog, koszyk, kody rabatowe, raporty.
+Kod w src/shopcart/, testy w tests/, dane w data/, zgłoszenia w ISSUES.md.
+
+## Komendy
+- Python, pytest i ruff zawsze z `.venv` (np. `.venv/bin/pytest`, na Windowsie `.venv\Scripts\pytest`)
+- Testy: `pytest` (jeden plik: `pytest tests/test_cart.py`)
+- Lint i format: `ruff check . && ruff format .`
+- Uruchomienie: `python -m shopcart <catalog|search|cart|report>`
+
+## Zasady
+- Każda zmiana zachowania ma test. Przy błędzie: najpierw test, który go odtwarza.
+- Przed commitem: `pytest` i `ruff check .` muszą przechodzić.
+- Commity po polsku, w trybie rozkazującym, z numerem zgłoszenia: "Napraw ... (#2)".
+- Nie zmieniaj plików w data/ ani .env. To robi człowiek.
+- Ceny w data/products.json są NETTO; VAT liczy pricing.gross().
+
+## Kompaktowanie
+- Przy kompaktowaniu zachowaj listę zmienionych plików i numer bieżącego zgłoszenia.
+</script>
+
+<script type="text/plain" id="f-agent">---
+name: test-reviewer
+description: Recenzuje zmiany pod kątem testów. Używaj po każdej zmianie w src/.
+tools: Read, Grep, Glob, Bash
+model: sonnet
+---
+Jesteś doświadczonym inżynierem QA. Recenzujesz zmiany z `git diff HEAD~1`
+(albo te, które wskaże Ci zlecający).
+
+Sprawdź:
+- czy każda zmiana zachowania ma test,
+- czy jakaś asercja została usunięta albo osłabiona,
+- jakich przypadków brzegowych brakuje (kwoty 0, ujemne, duże ilości, wielkość liter).
+
+Raportuj tylko konkretne problemy, każdy z odwołaniem plik:linia i propozycją testu.
+Nie edytuj plików. Jeśli nie znajdziesz problemów, napisz to jednym zdaniem.
+</script>
+
+<script type="text/plain" id="f-skill">---
+name: fix-issue
+description: Rozwiązuje zgłoszenie z ISSUES.md: test, implementacja, weryfikacja, commit
+disable-model-invocation: true
+argument-hint: [numer-zgłoszenia]
+allowed-tools: Bash(pytest *) Bash(ruff check *) Bash(git add *) Bash(git commit *)
+---
+Rozwiąż zgłoszenie #$ARGUMENTS z pliku ISSUES.md.
+
+1. Przeczytaj zgłoszenie i wypisz jego kryteria akceptacji w punktach.
+2. Znajdź kod, którego dotyczy. Jeśli zmiana obejmie więcej niż 2 pliki,
+   pokaż krótki plan i poczekaj na moją akceptację.
+3. Napisz testy dla każdego kryterium. Uruchom je i pokaż, że nie przechodzą.
+4. Zaimplementuj zmianę. Nie zmieniaj testów po to, żeby przeszły.
+5. Uruchom `pytest` i `ruff check .` i pokaż wynik.
+6. Zrób commit z komunikatem: "Rozwiąż #$ARGUMENTS: <krótki opis>".
+</script>
+
+<script>
+const MODULES = [
+{
+  id: "m0", title: "Przygotowanie", minutes: 5,
+  goal: "Działające środowisko, zielone testy i pierwsza otwarta sesja Claude Code.",
+  tasks: [
+    {
+      id: "m0t1", title: "Sprawdź instalację Claude Code",
+      magic: {
+        title: "Otwórz Claude w folderze projektu",
+        body: "<p>Rozpakuj archiwum. Otwórz terminal od razu w folderze <code>shopcart-kurs</code>:</p><ul><li><strong>macOS:</strong> w Finderze kliknij folder prawym przyciskiem i wybierz <em>Usługi</em> → <em>Nowy terminal w folderze</em>.</li><li><strong>Windows 11:</strong> kliknij folder prawym przyciskiem i wybierz <em>Otwórz w terminalu</em>.</li></ul><p>Wpisz <code>claude</code> i naciśnij Enter. To jedyna komenda, którą wpiszesz w terminalu; resztę zrobi Claude. Przy pierwszym uruchomieniu zaloguj się w przeglądarce i potwierdź, że ufasz temu folderowi.</p>",
+        shell: ["claude"],
+        commands: [
+          { cmd: "claude", short: "otwiera rozmowę z Claude w bieżącym folderze",
+            what: "Startuje sesję związaną z folderem, w którym otworzyłeś terminal. Claude widzi pliki projektu i może uruchamiać programy, ale pyta o zgodę.",
+            tip: "Brak opcji w menu kontekstowym? Otwórz Terminal, wpisz <code>cd</code> ze spacją, przeciągnij folder do okna i naciśnij Enter. Jeśli terminal nie zna polecenia <code>claude</code>, poproś prowadzącego o pomoc z instalacją." },
+          { cmd: "/login", short: "logowanie albo zmiana konta",
+            what: "Uruchamia logowanie w przeglądarce. Potrzebne tylko przy pierwszym uruchomieniu albo zmianie konta.", tip: "" }
+        ]
+      },
+      body: "<p>Otwórz terminal (na Windowsie PowerShell albo WSL) i upewnij się, że Claude Code jest zainstalowany.</p>",
+      shell: ["claude --version"],
+      commands: [
+        { cmd: "claude --version", short: "pokazuje zainstalowaną wersję",
+          what: "Wypisuje numer wersji. Jeśli terminal mówi, że nie zna polecenia <code>claude</code>, katalog instalacji nie jest w PATH.",
+          tip: "Instalacja: <code>curl -fsSL https://claude.ai/install.sh | bash</code> (macOS, Linux, WSL) albo <code>irm https://claude.ai/install.ps1 | iex</code> (PowerShell). Po instalacji otwórz nowe okno terminala." },
+        { cmd: "claude doctor", short: "diagnozuje instalację bez uruchamiania sesji",
+          what: "Sprawdza instalację, PATH, pliki ustawień i dostępne aktualizacje. Niczego nie zmienia.",
+          tip: "Wewnątrz sesji jest też <code>/doctor</code>, który oprócz diagnozy proponuje poprawki i pyta o zgodę przed ich wprowadzeniem." }
+      ]
+    },
+    {
+      id: "m0t2", title: "Przygotuj projekt i uruchom testy",
+      magic: {
+        title: "Poproś Claude o przygotowanie projektu",
+        body: "<p>Zamiast wpisywać komendy, opisz cel. Claude sam sprawdzi wersję Pythona, przygotuje środowisko i uruchomi testy. Zatwierdzaj kolejne kroki, gdy zapyta o zgodę, i czytaj, co robi.</p>",
+        prompts: ["Przygotuj ten projekt do pracy: sprawdź, czy mam Pythona 3.10 lub nowszego, utwórz środowisko wirtualne .venv, zainstaluj projekt z zależnościami dev, skopiuj .env.example do .env i uruchom testy. Krótko wyjaśnij każdy krok. Od teraz uruchamiaj python, pytest i ruff zawsze z .venv."],
+        commands: [
+          { cmd: "Zgoda na komendę", short: "Claude pyta, zanim coś uruchomi",
+            what: "Gdy Claude chce uruchomić program na Twoim komputerze, pokazuje komendę i czeka na decyzję. Możesz się zgodzić raz, zgodzić na stałe dla tej komendy albo odmówić i napisać, co ma zrobić inaczej.",
+            tip: "Nie musisz rozumieć każdej komendy. Wystarczy zapytać: „co robi ta komenda i czy jest bezpieczna?”. W trybie auto (moduł 2) Claude wykonuje bezpieczne komendy bez pytania." }
+        ]
+      },
+      body: "<p>Rozpakuj repozytorium, utwórz środowisko wirtualne i zainstaluj zależności. Na Windowsie użyj komend z <code>README.md</code>.</p>",
+      shell: ["cd shopcart-kurs\npython3 -m venv .venv\nsource .venv/bin/activate\npip install -e \".[dev]\"\ncp .env.example .env\npytest"],
+      commands: [
+        { cmd: "pytest", short: "uruchamia testy projektu",
+          what: "Uruchamia 16 testów z katalogu <code>tests/</code>. Na starcie wszystkie przechodzą, mimo że w kodzie są błędy. Testy po prostu ich nie sprawdzają.",
+          tip: "Uruchamiaj <code>claude</code> w terminalu z aktywnym <code>.venv</code>. Claude używa tej samej powłoki co Ty, więc zobaczy te same <code>python</code>, <code>pytest</code> i <code>ruff</code>." }
+      ]
+    },
+    {
+      id: "m0t3", title: "Otwórz pierwszą sesję",
+      magic: {
+        title: "Sprawdź, czy sklep działa",
+        body: "<p>Poproś Claude o uruchomienie aplikacji. Zobaczysz katalog produktów, który będziemy naprawiać.</p>",
+        prompts: ["Uruchom aplikację tak, żebym zobaczył listę produktów, a potem policz przykładowy koszyk: dwa kubki KUB-001 z kodem LATO10."],
+        commands: [
+          { cmd: "/help", short: "lista komend dostępnych w rozmowie",
+            what: "Pokazuje komendy zaczynające się od ukośnika. Wpisanie samego <code>/</code> otwiera menu z podpowiedziami.",
+            tip: "<kbd>↑</kbd> przywołuje poprzednie wiadomości, więc nie musisz ich pisać od nowa." },
+          { cmd: "/exit", short: "kończy rozmowę",
+            what: "Zamyka sesję. Rozmowa jest zapisana i można do niej wrócić (moduł 4).", tip: "" }
+        ]
+      },
+      body: "<p>W katalogu projektu uruchom Claude Code. Przy pierwszym uruchomieniu zaloguj się w przeglądarce i potwierdź, że ufasz temu folderowi.</p>",
+      shell: ["claude"],
+      commands: [
+        { cmd: "claude", short: "otwiera interaktywną sesję w bieżącym katalogu",
+          what: "Startuje sesję związaną z katalogiem, w którym jesteś. Claude widzi pliki tego projektu, stan gita i może uruchamiać komendy w Twoim terminalu.",
+          tip: "Katalog startowy ma znaczenie: to „projekt”. Uruchamiaj <code>claude</code> w katalogu głównym repozytorium, nie w <code>src/</code>." },
+        { cmd: "/help", short: "lista komend dostępnych w sesji",
+          what: "Pokazuje komendy wbudowane i skille. Wpisanie samego <code>/</code> otwiera menu z podpowiedziami.",
+          tip: "<kbd>Tab</kbd> uzupełnia komendy, <kbd>↑</kbd> przywołuje poprzednie wiadomości." },
+        { cmd: "/login", short: "logowanie albo zmiana konta",
+          what: "Uruchamia logowanie w przeglądarce. Potrzebne tylko przy pierwszym uruchomieniu albo zmianie konta.", tip: "" },
+        { cmd: "/exit", short: "kończy sesję",
+          what: "Zamyka sesję. Rozmowa jest zapisana lokalnie i można do niej wrócić (moduł 4).",
+          tip: "Dwukrotne <kbd>Ctrl</kbd>+<kbd>D</kbd> działa tak samo." }
+      ]
+    }
+  ],
+  done: ["<code>pytest</code> pokazuje <code>16 passed</code>", "w terminalu działa sesja <code>claude</code>"]
+},
+{
+  id: "m1", title: "Rozmowa bez zmian w kodzie", minutes: 7,
+  goal: "Nauczysz się zadawać pytania o kod i podawać Claude kontekst. W tym module Claude niczego nie zmienia.",
+  tasks: [
+    {
+      id: "m1t1", title: "Poproś o przegląd projektu",
+      body: "<p>Zacznij od pytania, które zadałbyś nowemu koledze z zespołu. Obserwuj, które pliki Claude czyta, zanim odpowie.</p>",
+      prompts: ["Co robi ten projekt? Opisz każdy moduł z src/shopcart w jednym zdaniu i powiedz, jak przepływają dane od katalogu do kwoty do zapłaty."],
+      commands: []
+    },
+    {
+      id: "m1t2", title: "Wskaż plik przez @",
+      body: "<p>Zamiast opisywać, gdzie jest kod, wskaż plik. Wpisz <code>@</code> i zacznij pisać nazwę, a Claude podpowie ścieżkę.</p>",
+      prompts: ["@src/shopcart/cart.py Jak liczona jest kwota do zapłaty? Przejdź krok po kroku przez metodę total() i wskaż, w którym momencie stosowany jest rabat."],
+      commands: [
+        { cmd: "@ścieżka/do/pliku", short: "dołącza plik do wiadomości",
+          what: "Claude czyta wskazany plik przed odpowiedzią. Precyzyjne wskazanie pliku oznacza mniej przeszukiwania i mniej zużytego kontekstu.",
+          tip: "Możesz wskazać kilka plików w jednej wiadomości, a także katalog, np. <code>@tests/</code>." }
+      ]
+    },
+    {
+      id: "m1t3", title: "Uruchom komendę sam i pokaż wynik Claude",
+      magic: {
+        title: "Poproś Claude o uruchomienie aplikacji",
+        body: "<p>Claude może uruchomić aplikację i porównać wynik ze swoim wyjaśnieniem. To dobry nawyk: prosić o dowód, a nie tylko o opis.</p>",
+        prompts: ["Uruchom koszyk z bluzą BLU-001 i kodem LATO10. Sprawdź, czy wynik zgadza się z Twoim wyjaśnieniem metody total(), i przelicz go ręcznie."],
+        commands: []
+      },
+      body: "<p>Prefiks <code>!</code> uruchamia komendę w powłoce bez udziału Claude. Wynik trafia do rozmowy, więc możesz od razu o niego zapytać.</p>",
+      prompts: ["!python -m shopcart cart --add BLU-001 --code LATO10", "Czy ten wynik zgadza się z Twoim wyjaśnieniem metody total()? Przelicz go ręcznie."],
+      commands: [
+        { cmd: "!komenda", short: "uruchamia komendę w powłoce, wynik trafia do rozmowy",
+          what: "Tryb powłoki: Ty uruchamiasz komendę, Claude widzi ją i jej wynik jako część Twojej wiadomości.",
+          tip: "Dobre do pokazania Claude błędu albo stanu repozytorium, np. <code>!git status</code>, bez proszenia go o uruchomienie." }
+      ]
+    },
+    {
+      id: "m1t4", title: "Przerwij i skieruj w inną stronę",
+      body: "<p>Wyślij szerokie polecenie, a gdy Claude zacznie czytać kolejne pliki, naciśnij <kbd>Esc</kbd>. Następnie zawęź zadanie.</p>",
+      prompts: ["Przeanalizuj dokładnie każdy plik w repozytorium i opisz wszystkie możliwe problemy.", "Zawęź to: tylko src/shopcart/discounts.py. Jakie przypadki brzegowe nie są obsłużone?"],
+      commands: [
+        { cmd: "Esc", short: "zatrzymuje Claude w trakcie pracy",
+          what: "Przerywa bieżącą akcję. Kontekst rozmowy zostaje, więc możesz od razu podać korektę.",
+          tip: "Możesz też pisać, gdy Claude pracuje: wiadomość trafi do kolejki i zostanie przeczytana po bieżącym kroku." },
+        { cmd: "/btw pytanie", short: "pytanie poboczne, które nie trafia do historii",
+          what: "Odpowiada na szybkie pytanie, korzystając z kontekstu rozmowy, ale odpowiedź nie zostaje w historii, więc nie zajmuje miejsca.",
+          tip: "Np. <code>/btw co znaczy frozen=True w dataclass?</code> w trakcie dłuższego zadania." }
+      ]
+    }
+  ],
+  done: ["umiesz wskazać, w której funkcji i linii stosowany jest rabat", "Claude nie zmienił żadnego pliku (<code>!git status</code> jest czysty)"]
+},
+{
+  id: "m2", title: "Pierwsza poprawka i tryby uprawnień", minutes: 10, issue: "#1",
+  goal: "Naprawisz zgłoszenie #1, kontrolując każdą zmianę, przejrzysz diff i nauczysz się cofać zmiany.",
+  tasks: [
+    {
+      id: "m2t1", title: "Przełącz się na tryb ręczny",
+      body: "<p>Nowe wersje startują w trybie <em>auto</em>, w którym osobny model zatwierdza bezpieczne akcje. Na naukę lepszy jest tryb ręczny: widzisz i zatwierdzasz każdą edycję. Naciskaj <kbd>Shift</kbd>+<kbd>Tab</kbd>, aż pasek stanu pokaże <code>manual mode on</code>.</p>",
+      commands: [
+        { cmd: "Shift+Tab", short: "przełącza tryb uprawnień",
+          what: "Cykl trybów: <strong>auto</strong> (klasyfikator blokuje ryzykowne akcje), <strong>manual</strong> (pytanie o każdą edycję i komendę), <strong>accept edits</strong> (edycje bez pytania, komendy z pytaniem), <strong>plan</strong> (tylko czytanie i plan).",
+          tip: "Tryb można ustawić przy starcie: <code>claude --permission-mode manual</code>." },
+        { cmd: "claude --permission-mode manual", short: "startuje sesję w wybranym trybie",
+          what: "Ustawia tryb uprawnień na czas sesji. Dostępne wartości to m.in. <code>manual</code>, <code>acceptEdits</code>, <code>plan</code>, <code>auto</code>.",
+          tip: "<code>bypassPermissions</code> wyłącza zabezpieczenia. Używaj go tylko w izolowanym kontenerze lub maszynie wirtualnej." }
+      ]
+    },
+    {
+      id: "m2t2", title: "Napraw zgłoszenie #1",
+      body: "<p>Zgłoszenie opisuje problem i kryteria akceptacji. Zatwierdzaj zmiany świadomie: przynajmniej raz odrzuć propozycję i powiedz, co Claude ma zrobić inaczej.</p>",
+      prompts: ["Przeczytaj zgłoszenie #1 w ISSUES.md i je napraw. Dodaj testy dla małych liter, spacji wokół kodu i czytelnego komunikatu dla nieznanego kodu. Na koniec uruchom pytest i pokaż wynik."],
+      commands: []
+    },
+    {
+      id: "m2t3", title: "Przejrzyj diff i sprawdź efekt",
+      magic: {
+        title: "Przejrzyj zmiany i sprawdź efekt",
+        body: "<p>Nie ufaj samemu podsumowaniu. Poproś o dokładną listę zmian i sprawdź, czy aplikacja działa tak, jak opisano w zgłoszeniu.</p>",
+        prompts: ["Pokaż, co dokładnie zmieniłeś: najpierw prostym językiem, potem jako git diff.", "Uruchom koszyk z kubkiem KUB-001 i kodem lato10 pisanym małymi literami. Pokaż wynik."],
+        commands: [
+          { cmd: "git diff", short: "dokładna lista zmian w plikach",
+            what: "Pokazuje linie dodane i usunięte w każdym pliku. To jedyne pewne źródło informacji o tym, co Claude zmienił.",
+            tip: "Zapytaj wprost: „czy zmieniłeś coś, o co nie prosiłem?”. Dobre pytania sprawdzające są ważniejsze niż czytanie kodu." }
+        ]
+      },
+      body: "<p>Nie ufaj podsumowaniu, czytaj zmiany. Sprawdź też zachowanie aplikacji.</p>",
+      prompts: ["!git diff", "!python -m shopcart cart --add KUB-001 --code lato10"],
+      commands: [
+        { cmd: "!git diff", short: "pokazuje niezatwierdzone zmiany",
+          what: "Wyświetla dokładne różnice w plikach. To jedyne wiarygodne źródło informacji o tym, co Claude zmienił.",
+          tip: "Szukaj zmian, o które nie prosiłeś: usuniętych testów, zmienionych asercji, nowych zależności." }
+      ]
+    },
+    {
+      id: "m2t4", title: "Wypróbuj cofanie zmian",
+      body: "<p>Poproś o zmianę, której nie chcesz, a potem ją cofnij. Naciśnij dwukrotnie <kbd>Esc</kbd> (albo wpisz <code>/rewind</code>), wybierz wiadomość i opcję przywrócenia kodu.</p>",
+      prompts: ["Dopisz do klasy Cart docstring w formie rymowanego wierszyka."],
+      commands: [
+        { cmd: "/rewind", short: "przywraca kod lub rozmowę do wcześniejszego punktu",
+          what: "Każda Twoja wiadomość tworzy punkt kontrolny. Możesz przywrócić sam kod, samą rozmowę albo oba.",
+          tip: "Punkty kontrolne śledzą tylko edycje wykonane narzędziami Claude, nie skutki komend w powłoce (np. migracji bazy). Git dalej jest Twoją siatką bezpieczeństwa." },
+        { cmd: "Esc Esc", short: "skrót do menu /rewind",
+          what: "Dwukrotne naciśnięcie <kbd>Esc</kbd> otwiera to samo menu cofania.", tip: "" }
+      ]
+    },
+    {
+      id: "m2t5", title: "Zatwierdź zmiany",
+      body: "<p>Poproś Claude o commit. Sprawdź komunikat.</p>",
+      prompts: ["Zrób commit tych zmian z opisowym komunikatem po polsku, z numerem zgłoszenia."],
+      commands: []
+    }
+  ],
+  done: ["<code>--code lato10</code> działa", "nieznany kod daje czytelny komunikat", "<code>pytest</code> przechodzi, commit jest w <code>git log</code>"]
+},
+{
+  id: "m3", title: "CLAUDE.md, czyli pamięć projektu", minutes: 7,
+  goal: "Zapiszesz w projekcie to, czego Claude nie odgadnie z kodu, i sprawdzisz, że naprawdę z tego korzysta.",
+  tasks: [
+    {
+      id: "m3t1", title: "Wygeneruj szkic",
+      body: "<p><code>/init</code> analizuje projekt i tworzy plik <code>CLAUDE.md</code>. Przeczytaj go krytycznie: wszystko, co Claude wyczyta z kodu, jest zbędne.</p>",
+      commands: [
+        { cmd: "/init", short: "tworzy startowy CLAUDE.md",
+          what: "Claude przegląda repozytorium i zapisuje komendy budowania, testów i konwencje, które znalazł. Jeśli CLAUDE.md istnieje, proponuje poprawki.",
+          tip: "Szkic z /init to punkt wyjścia. Docelowo plik powinien mieć poniżej 200 linii, a w tym projekcie wystarczy ok. 30." }
+      ]
+    },
+    {
+      id: "m3t2", title: "Przytnij i dopisz zasady",
+      magic: {
+        body: "<p>Skopiuj przykład poniżej przyciskiem <em>Kopiuj</em> i poproś Claude o zapisanie go jako CLAUDE.md. Przeczytaj go: każda linia to coś, czego Claude nie odgadnie z kodu.</p>",
+        prompts: ["Zapisz poniższy tekst jako CLAUDE.md, zastępując obecną treść. Nie zmieniaj go.\n\n[tu wklej skopiowany przykład]"]
+      },
+      body: "<p>Zastąp szkic albo uzupełnij go. Poniżej przykład dobrego CLAUDE.md dla tego projektu: komendy, zasady, które różnią się od domyślnych, i pułapki.</p>",
+      files: [{ id: "f-claudemd", label: "CLAUDE.md (przykład)" }],
+      commands: [
+        { cmd: "/memory", short: "otwiera pliki CLAUDE.md i pamięć automatyczną",
+          what: "Lista plików pamięci: projektowego <code>CLAUDE.md</code>, osobistego <code>~/.claude/CLAUDE.md</code> i notatek, które Claude zapisuje sam (auto memory).",
+          tip: "Prywatne notatki do projektu trzymaj w <code>CLAUDE.local.md</code>, który jest w <code>.gitignore</code>." }
+      ]
+    },
+    {
+      id: "m3t3", title: "Sprawdź, że plik działa",
+      body: "<p>Zacznij nową rozmowę i zadaj pytanie, na które odpowiedź jest tylko w CLAUDE.md.</p>",
+      prompts: ["/clear", "Jakie dwa polecenia muszą przejść przed commitem i w jakiej formie piszemy komunikaty commitów?"],
+      commands: [
+        { cmd: "/context", short: "pokazuje, co zajmuje okno kontekstu",
+          what: "Rozbicie zużycia kontekstu na kategorie. W sekcji Memory files widać, czy CLAUDE.md został wczytany.",
+          tip: "Jeśli Claude ignoruje zasadę, sprawdź najpierw tutaj, czy plik w ogóle się wczytał." }
+      ]
+    }
+  ],
+  done: ["Claude odpowiada zgodnie z CLAUDE.md w nowej rozmowie", "CLAUDE.md jest w commicie"]
+},
+{
+  id: "m4", title: "Kontekst i sesje", minutes: 6,
+  goal: "Zobaczysz, jak zapełnia się kontekst, i nauczysz się go czyścić, kompaktować oraz wracać do sesji.",
+  tasks: [
+    {
+      id: "m4t1", title: "Zmierz koszt czytania plików",
+      body: "<p>Zanotuj zajętość kontekstu, poproś o przeczytanie plików i sprawdź ponownie.</p>",
+      prompts: ["/context", "Przeczytaj src/shopcart/reports.py i data/orders.csv i powiedz, co liczy render_report().", "/context"],
+      commands: []
+    },
+    {
+      id: "m4t2", title: "Skompaktuj albo wyczyść",
+      body: "<p>Gdy kończysz wątek, masz dwie opcje: zachować streszczenie albo zacząć od zera.</p>",
+      prompts: ["/compact Zachowaj tylko wnioski o reports.py i problemy z kwotami"],
+      commands: [
+        { cmd: "/compact instrukcja", short: "streszcza rozmowę, zachowując to, co wskażesz",
+          what: "Zastępuje historię streszczeniem. CLAUDE.md jest wczytywany ponownie z dysku, więc zasady z niego nie giną.",
+          tip: "Instrukcje podane tylko w czacie mogą zgubić szczegóły. To, co ma przetrwać, zapisz w CLAUDE.md." },
+        { cmd: "/clear", short: "czyści kontekst przed nowym zadaniem",
+          what: "Zaczyna rozmowę od nowa w tym samym katalogu. Najprostszy sposób na lepsze wyniki przy zmianie tematu.",
+          tip: "Reguła z dokumentacji: jeśli poprawiłeś Claude dwa razy w tej samej sprawie, wyczyść kontekst i napisz lepszy pierwszy prompt." }
+      ]
+    },
+    {
+      id: "m4t3", title: "Nazwij sesję i wróć do niej",
+      magic: {
+        body: "<p>Nadaj rozmowie nazwę, zacznij nową, a potem wróć do poprzedniej z listy. Nie musisz wychodzić z Claude.</p>",
+        prompts: ["/rename warsztat-shopcart", "/clear", "/resume"],
+        commands: [
+          { cmd: "/rename nazwa", short: "nadaje sesji nazwę",
+            what: "Ułatwia odnalezienie sesji później. Traktuj sesje jak teczki: jeden temat, jedna sesja.", tip: "" },
+          { cmd: "/resume", short: "lista zapisanych rozmów",
+            what: "Pokazuje rozmowy zapisane w tym projekcie. Wybierz strzałkami i zatwierdź Enterem: wracasz z pełną historią.", tip: "" }
+        ]
+      },
+      body: "<p>Nadaj sesji nazwę, zamknij ją i otwórz ponownie.</p>",
+      prompts: ["/rename warsztat-shopcart", "/exit"],
+      shell: ["claude -c"],
+      commands: [
+        { cmd: "/rename nazwa", short: "nadaje sesji nazwę",
+          what: "Ułatwia odnalezienie sesji później. Traktuj sesje jak gałęzie: jeden wątek pracy, jedna sesja.", tip: "" },
+        { cmd: "claude -c", short: "kontynuuje ostatnią sesję w tym katalogu",
+          what: "Otwiera najnowszą rozmowę z pełną historią.", tip: "" },
+        { cmd: "claude --resume", short: "wybór sesji z listy",
+          what: "Pokazuje listę zapisanych sesji, także nazwanych przez <code>/rename</code>. Skrót: <code>claude -r</code>.",
+          tip: "W trakcie sesji to samo daje <code>/resume</code>." }
+      ]
+    }
+  ],
+  done: ["wiesz, ile kontekstu zajęło przeczytanie dwóch plików", "wróciłeś do nazwanej sesji przez <code>claude -c</code> lub <code>--resume</code>"]
+},
+{
+  id: "m5", title: "Najpierw test, potem poprawka", minutes: 10, issue: "#2",
+  goal: "Naprawisz zgłoszenie #2 tak, jak robią to inżynierowie: Claude dostaje sprawdzian, który sam uruchamia, i pokazuje dowód.",
+  tasks: [
+    {
+      id: "m5t1", title: "Odtwórz błąd testem",
+      body: "<p>Zacznij od czystego kontekstu. Rozdziel napisanie testu od poprawki, żeby test nie został „dopasowany” do kodu.</p>",
+      prompts: ["/clear", "Zgłoszenie #2 z ISSUES.md. Najpierw napisz test, który odtwarza ten błąd. Uruchom go i pokaż, że nie przechodzi. Nie poprawiaj jeszcze kodu."],
+      commands: []
+    },
+    {
+      id: "m5t2", title: "Popraw kod do zielonego testu",
+      body: "<p>Teraz poproś o poprawkę z warunkiem, że test się nie zmieni, i o dowód w postaci wyniku komend.</p>",
+      prompts: ["Popraw kod tak, żeby test przeszedł, bez zmieniania testu. Uruchom cały pytest oraz ruff check . i pokaż wynik."],
+      commands: []
+    },
+    {
+      id: "m5t3", title: "Sprawdź, czy nikt nie oszukał",
+      magic: {
+        body: "<p>Testy mogą „przejść”, bo ktoś je osłabił. Zapytaj o to wprost i poproś o dowód. Potem poproś o commit.</p>",
+        prompts: ["Pokaż, które pliki zmieniłeś i o ile linii. Czy usunąłeś lub osłabiłeś jakąkolwiek asercję w testach? Odpowiedz z dowodem.", "Uruchom koszyk z długopisem DLG-001 i kodem WITAJ20. Pokaż kwotę do zapłaty."],
+        commands: []
+      },
+      body: "<p>Upewnij się, że plik testów tylko przybył, a żadna asercja nie zniknęła. Potem zatwierdź zmiany.</p>",
+      prompts: ["!git diff --stat", "!python -m shopcart cart --add DLG-001 --code WITAJ20"],
+      commands: [
+        { cmd: "!git diff --stat", short: "pokazuje, które pliki zmieniono i o ile linii",
+          what: "Szybki przegląd zakresu zmian. Ujemne liczby w plikach testów to sygnał ostrzegawczy.",
+          tip: "W promptach do pracy bez nadzoru dopisuj: „nie modyfikuj istniejących testów”." }
+      ]
+    }
+  ],
+  done: ["test najpierw nie przechodził, potem przeszedł", "<code>--code WITAJ20</code> dla długopisu daje <code>0,00 zł</code>", "commit z numerem #2"]
+},
+{
+  id: "m6", title: "Tryb planowania: refaktoryzacja na Decimal", minutes: 13, issue: "#4",
+  goal: "Zmiana obejmuje kilka plików, więc najpierw zbadasz kod i zatwierdzisz plan, a dopiero potem pozwolisz na edycje.",
+  tasks: [
+    {
+      id: "m6t1", title: "Zbadaj kod w trybie plan",
+      body: "<p>Wyczyść kontekst i przełącz się <kbd>Shift</kbd>+<kbd>Tab</kbd> na <code>plan mode on</code>. W tym trybie Claude czyta i analizuje, ale nie edytuje plików.</p>",
+      prompts: ["/clear", "Przeczytaj zgłoszenie #4. Znajdź wszystkie miejsca w src/ i tests/, gdzie kwoty są typu float. Przygotuj plan migracji na Decimal: lista plików, kolejność kroków, ryzyka i sposób weryfikacji po każdym kroku."],
+      commands: [
+        { cmd: "plan mode", short: "tryb: czytanie i plan bez edycji",
+          what: "Claude może czytać pliki i uruchamiać komendy eksploracyjne, ale nie zmienia kodu, dopóki nie zatwierdzisz planu.",
+          tip: "Planuj, gdy zmiana dotyczy wielu plików albo nie znasz kodu. Jeśli diff da się opisać jednym zdaniem, plan jest zbędny." }
+      ]
+    },
+    {
+      id: "m6t2", title: "Popraw plan",
+      body: "<p>Przeczytaj plan. Zadawaj pytania, a poprawki nanieś w edytorze: <kbd>Ctrl</kbd>+<kbd>G</kbd> otwiera plan jako plik tekstowy. Dopisz np. warunek, że każdy krok kończy się zielonym <code>pytest</code>.</p>",
+      prompts: ["Dlaczego w tej kolejności? Co się stanie z danymi z products.json, które są liczbami w JSON?"],
+      commands: [
+        { cmd: "Ctrl+G", short: "otwiera plan w edytorze tekstu",
+          what: "Możesz bezpośrednio edytować plan przed jego zatwierdzeniem. Po zapisaniu Claude pracuje według Twojej wersji.", tip: "" }
+      ]
+    },
+    {
+      id: "m6t3", title: "Zatwierdź i wykonaj",
+      magic: {
+        prompts: ["Uruchom raport sprzedaży i wszystkie testy. Pokaż wyniki i powiedz, czy kwoty wyglądają już poprawnie."]
+      },
+      body: "<p>Zatwierdź plan. Wybierz ręczne zatwierdzanie edycji, jeśli chcesz widzieć każdy krok, albo tryb automatyczny, jeśli plan jest dobry, a testy dadzą sygnał.</p>",
+      prompts: ["!python -m shopcart report", "!pytest"],
+      commands: []
+    },
+    {
+      id: "m6t4", title: "Zatwierdź po przeglądzie",
+      body: "<p>Przed commitem poproś o przegląd w świeżym kontekście. Recenzent nie widział, jak powstawał kod, więc nie jest stronniczy.</p>",
+      prompts: ["/code-review"],
+      commands: [
+        { cmd: "/code-review", short: "przegląd bieżących zmian w osobnym subagencie",
+          what: "Wbudowany skill: recenzuje diff pod kątem błędów w świeżym kontekście i zwraca znalezione problemy do sesji.",
+          tip: "Recenzent proszony o problemy zwykle jakieś znajdzie. Poprawiaj to, co dotyczy poprawności i wymagań; resztę oceń sam." }
+      ]
+    }
+  ],
+  done: ["raport pokazuje <code>1283,12 zł</code>, bez końcówek typu <code>...0000001</code>", "<code>pytest</code> i <code>ruff check .</code> przechodzą", "commit z numerem #4"]
+},
+{
+  id: "m7", title: "Subagenci", minutes: 8,
+  goal: "Oddasz czytanie wielu plików pomocnikowi z osobnym kontekstem i stworzysz własnego recenzenta testów.",
+  tasks: [
+    {
+      id: "m7t1", title: "Zleć badanie subagentowi",
+      body: "<p>Porównaj <code>/context</code> przed i po. Subagent czyta pliki u siebie, a do Ciebie wraca tylko streszczenie.</p>",
+      prompts: ["/context", "Użyj subagenta, żeby przejrzał src/shopcart/reports.py i wypisał 5 najważniejszych problemów jakości kodu z numerami linii. Nie zmieniaj plików.", "/context"],
+      commands: []
+    },
+    {
+      id: "m7t2", title: "Utwórz własnego subagenta",
+      body: "<p>Subagent to plik Markdown w <code>.claude/agents/</code>. Poproś Claude o jego utworzenie albo zapisz plik sam.</p>",
+      prompts: ["Utwórz subagenta w .claude/agents/test-reviewer.md: tylko do odczytu (Read, Grep, Glob, Bash), model sonnet. Ma recenzować zmiany z git diff HEAD~1 pod kątem brakujących i osłabionych testów oraz raportować problemy z plik:linia."],
+      files: [{ id: "f-agent", label: ".claude/agents/test-reviewer.md (oczekiwany wynik)" }],
+      commands: [
+        { cmd: ".claude/agents/", short: "katalog subagentów projektu",
+          what: "Każdy plik to subagent: frontmatter (nazwa, opis, narzędzia, model) i prompt systemowy. Pole <code>description</code> decyduje, kiedy Claude sam do niego deleguje.",
+          tip: "<code>.claude/</code> to katalog chroniony, więc Claude zapyta o zgodę na zapis nawet w trybie auto. Jeśli katalog <code>.claude/agents/</code> nie istniał przy starcie sesji, Claude nie zobaczy nowego agenta: wyjdź i wróć przez <code>claude -c</code>." }
+      ]
+    },
+    {
+      id: "m7t3", title: "Użyj go wprost",
+      body: "<p>Wpisz <code>@</code> i wybierz agenta z listy, żeby mieć pewność, że uruchomi się właśnie on.</p>",
+      prompts: ["@\"test-reviewer (agent)\" przejrzyj zmiany z ostatniego commita"],
+      commands: [
+        { cmd: "@\"nazwa (agent)\"", short: "wywołuje konkretnego subagenta",
+          what: "Wzmianka gwarantuje, że zadanie dostanie wskazany subagent, zamiast zostawiać wybór Claude.",
+          tip: "Całą sesję można uruchomić jako agenta: <code>claude --agent test-reviewer</code>." }
+      ]
+    }
+  ],
+  done: ["subagent zwrócił listę problemów, a Twój kontekst urósł niewiele", "plik <code>.claude/agents/test-reviewer.md</code> istnieje i działa"]
+},
+{
+  id: "m8", title: "Skille: powtarzalny przepływ pracy", minutes: 8, issue: "#5",
+  goal: "Zamienisz powtarzany prompt w komendę /fix-issue i rozwiążesz nią zgłoszenie #5.",
+  tasks: [
+    {
+      id: "m8t1", title: "Zapisz skill",
+      magic: {
+        body: "<p>Skill to przepis zapisany w pliku, który uruchamiasz jedną komendą. Skopiuj treść poniżej i poproś Claude o zapisanie pliku. Potem wpisz <code>/reload-skills</code>, żeby Claude zobaczył nową komendę.</p>",
+        prompts: ["Utwórz plik .claude/skills/fix-issue/SKILL.md z treścią, którą wklejam poniżej. Nie zmieniaj jej.\n\n[tu wklej skopiowaną treść]", "/reload-skills"]
+      },
+      body: "<p>Skill to katalog z plikiem <code>SKILL.md</code>. Do kontekstu trafia tylko jego opis, pełna treść ładuje się dopiero przy użyciu. Utwórz plik poniżej.</p>",
+      files: [{ id: "f-skill", label: ".claude/skills/fix-issue/SKILL.md" }],
+      commands: [
+        { cmd: "$ARGUMENTS", short: "w treści skilla zastępowane tym, co wpiszesz po komendzie",
+          what: "<code>/fix-issue 5</code> podstawia <code>5</code> wszędzie tam, gdzie w SKILL.md jest <code>$ARGUMENTS</code>.", tip: "" },
+        { cmd: "disable-model-invocation: true", short: "skill uruchamiasz tylko Ty",
+          what: "Claude nie wywoła takiego skilla sam z siebie, a jego opis nie zajmuje kontekstu. Używaj tego dla akcji ze skutkami: commit, deploy, wysyłka.", tip: "" },
+        { cmd: "/reload-skills", short: "wczytuje skille z nowo utworzonego katalogu",
+          what: "Claude obserwuje katalogi skilli, ale katalogu <code>.claude/skills/</code> utworzonego w trakcie sesji jeszcze nie śledzi. Ta komenda go wczytuje.",
+          tip: "Listę dostępnych skilli pokazuje <code>/skills</code>." }
+      ]
+    },
+    {
+      id: "m8t2", title: "Rozwiąż #5 jedną komendą",
+      magic: {
+        prompts: ["/fix-issue 5", "Uruchom raport w formacie JSON i sprawdź, czy da się go poprawnie wczytać jako JSON."]
+      },
+      body: "<p>Uruchom skill i pilnuj, żeby wykonał kroki w kolejności. Na koniec sprawdź wynik sam.</p>",
+      prompts: ["/fix-issue 5", "!python -m shopcart report --format json"],
+      commands: []
+    }
+  ],
+  done: ["<code>report --format json</code> zwraca poprawny JSON", "commit „Rozwiąż #5: …”", "skill jest w repozytorium i może go użyć cały zespół"]
+},
+{
+  id: "m9", title: "Uprawnienia i hooki", minutes: 8,
+  goal: "Zamienisz prośby z CLAUDE.md w zasady, które zawsze obowiązują: reguły uprawnień i hooki.",
+  tasks: [
+    {
+      id: "m9t1", title: "Zainstaluj gotowe szablony",
+      magic: {
+        body: "<p>W <code>warsztat/szablony/</code> są gotowe ustawienia i dwa hooki, czyli skrypty uruchamiane automatycznie przy każdej edycji. Poproś Claude o ich instalację i sprawdzenie.</p>",
+        prompts: ["Zainstaluj ustawienia i hooki z warsztat/szablony: skrypty .py skopiuj do .claude/hooks/, a settings.json do .claude/settings.json. W poleceniach hooków zamień python na Pythona z .venv tego projektu, z właściwą ścieżką dla mojego systemu. Sprawdź oba hooki, podając im przykładowy JSON na wejściu, i pokaż wynik.", "/hooks"]
+      },
+      body: "<p>W <code>warsztat/szablony/</code> są dwa hooki w Pythonie i plik ustawień. Skopiuj je w drugim terminalu (z aktywnym <code>.venv</code>). Na Windowsie użyj <code>mkdir</code> i <code>copy</code> z odwrotnymi ukośnikami.</p>",
+      shell: ["mkdir -p .claude/hooks\ncp warsztat/szablony/*.py .claude/hooks/\ncp warsztat/szablony/settings.json .claude/settings.json"],
+      prompts: ["/hooks"],
+      commands: [
+        { cmd: ".claude/settings.json", short: "ustawienia projektu dla całego zespołu",
+          what: "Sekcja <code>permissions</code>: <strong>allow</strong> (bez pytania), <strong>ask</strong> (zawsze pytaj), <strong>deny</strong> (zawsze blokuj). Sekcja <code>hooks</code>: skrypty uruchamiane przy zdarzeniach.",
+          tip: "Claude Code wczytuje zmiany w ustawieniach w trakcie sesji. Osobiste wyjątki trzymaj w <code>.claude/settings.local.json</code>." },
+        { cmd: "/hooks", short: "pokazuje skonfigurowane hooki",
+          what: "Przegląd hooków pogrupowanych po zdarzeniach. Powinieneś zobaczyć <code>PreToolUse</code> i <code>PostToolUse</code>.", tip: "" },
+        { cmd: "/permissions", short: "przegląd i edycja reguł uprawnień",
+          what: "Pokazuje reguły allow, ask i deny ze wszystkich plików ustawień oraz ostatnio odrzucone akcje.", tip: "" }
+      ]
+    },
+    {
+      id: "m9t2", title: "Sprawdź, czy blokady działają",
+      body: "<p>Hook <code>protect_files.py</code> blokuje edycję <code>.env</code> i <code>data/</code>. Claude dostanie wyjaśnienie i powinien zaproponować inną drogę.</p>",
+      prompts: ["Zmień cenę produktu KUB-001 w data/products.json na 19.99", "Pokaż mi zawartość pliku .env"],
+      commands: [
+        { cmd: "PreToolUse + exit 2", short: "hook blokuje akcję przed wykonaniem",
+          what: "Skrypt dostaje na wejściu JSON z nazwą narzędzia i argumentami. Kod wyjścia 2 blokuje akcję, a tekst z stderr trafia do Claude.",
+          tip: "CLAUDE.md to prośba, hook to gwarancja. Zasady bez wyjątków zapisuj jako hook lub regułę deny." }
+      ]
+    },
+    {
+      id: "m9t3", title: "Omów lukę",
+      body: "<p>Reguła <code>Read(./.env)</code> blokuje narzędzie Read. Czy Claude spróbował odczytać plik inaczej, np. przez <code>cat .env</code> w powłoce? Jeśli tak, zatrzymał go tryb ręczny albo auto, a nie reguła.</p>",
+      prompts: ["Jakimi sposobami mógłbyś odczytać .env mimo reguły Read(./.env)? Zaproponuj reguły albo ustawienia, które zamkną te drogi."],
+      commands: [
+        { cmd: "/sandbox", short: "włącza izolację komend powłoki na poziomie systemu",
+          what: "Na macOS, Linuksie i WSL2 ogranicza zapis do katalogu projektu i ruch sieciowy do dozwolonych domen. Pliki z sekretami można dodatkowo wykluczyć ustawieniem <code>sandbox.credentials</code>.",
+          tip: "Warstwy się uzupełniają: reguły uprawnień decydują, które narzędzia działają, piaskownica ogranicza, do czego sięga uruchomiona komenda." }
+      ]
+    }
+  ],
+  done: ["edycja <code>data/products.json</code> jest blokowana z komunikatem hooka", "<code>/hooks</code> pokazuje oba hooki", "wiesz, czym różni się reguła deny od piaskownicy"]
+},
+{
+  id: "m10", title: "Worktrees: praca równoległa", minutes: 8, issue: "#6, #7",
+  goal: "Dwa zgłoszenia naraz, w osobnych kopiach projektu (worktree), tak żeby zmiany się nie nadpisywały.",
+  tasks: [
+    {
+      id: "m10t1", title: "Zacznij od czystego stanu",
+      magic: {
+        body: "<p>Worktree powstaje z ostatniej zatwierdzonej wersji projektu, więc najpierw zapisz w gicie wszystko, co już zrobiłeś.</p>",
+        prompts: ["Zatwierdź w gicie wszystkie bieżące zmiany, łącznie z katalogiem .claude/. Pokaż git status po commicie."]
+      },
+      body: "<p>Worktree to osobny katalog z własną gałęzią i wspólną historią gita. Nowy worktree powstaje z gałęzi domyślnej, więc najpierw zatwierdź wszystko, łącznie z <code>.claude/</code>.</p>",
+      shell: ["git status\ngit add -A && git commit -m \"Dodaj konfigurację Claude Code\""],
+      commands: []
+    },
+    {
+      id: "m10t2", title: "Sesja B w worktree: testy raportów (#6)",
+      magic: {
+        title: "Dwóch subagentów, każdy w swoim worktree",
+        body: "<p>Zamiast drugiego okna terminala poproś o dwóch pomocników (subagentów) pracujących jednocześnie. Każdy dostaje własny worktree: osobną kopię projektu na własnej gałęzi, więc nie przeszkadzają sobie nawzajem.</p>",
+        prompts: ["Uruchom równolegle dwóch subagentów, każdego w osobnym worktree. Pierwszy rozwiązuje zgłoszenie #6, drugi zgłoszenie #7 z ISSUES.md. Każdy ma uruchomić testy i zrobić commit na swojej gałęzi."],
+        commands: [
+          { cmd: "worktree", short: "osobna kopia projektu na własnej gałęzi",
+            what: "Oddzielny folder z tym samym projektem i wspólną historią zmian. Praca w jednym nie zmienia plików w drugim.",
+            tip: "Gdy dwie osoby (albo dwóch subagentów) edytują te same pliki w jednym folderze, psują sobie nawzajem pracę. Worktree tego zapobiega." }
+        ]
+      },
+      body: "<p>Otwórz drugi terminal w katalogu projektu (z aktywnym <code>.venv</code>) i uruchom sesję w nowym worktree.</p>",
+      shell: ["claude -w testy-raportow"],
+      prompts: ["Rozwiąż zgłoszenie #6 z ISSUES.md. Uruchom pytest i zrób commit."],
+      commands: [
+        { cmd: "claude -w nazwa", short: "sesja w izolowanym worktree",
+          what: "Tworzy <code>.claude/worktrees/nazwa/</code> na nowej gałęzi <code>worktree-nazwa</code> i otwiera tam sesję. Zmiany w niej nie dotykają Twojego głównego katalogu.",
+          tip: "Worktree to świeży checkout: nie ma w nim <code>.env</code> ani <code>.venv</code>. Pliki spoza gita kopiuje lista w <code>.worktreeinclude</code>. Testy działają, bo <code>pytest</code> bierze kod z lokalnego <code>src/</code>." },
+        { cmd: "git worktree list", short: "lista worktree w repozytorium",
+          what: "Pokazuje wszystkie katalogi robocze i ich gałęzie.", tip: "" }
+      ]
+    },
+    {
+      id: "m10t3", title: "Sesja A w głównym katalogu: README (#7)",
+      magic: {
+        title: "Podejrzyj pracę w tle",
+        body: "<p>Subagenci pracują w tle, a Ty możesz dalej rozmawiać z Claude. Sprawdź, co robią, i zadaj pytanie poboczne.</p>",
+        prompts: ["/tasks", "/btw czym worktree różni się od zwykłej gałęzi w gicie?"],
+        commands: [
+          { cmd: "/tasks", short: "lista zadań działających w tle",
+            what: "Pokazuje działających subagentów i ich stan. Enter na wybranym otwiera szczegóły.", tip: "" }
+        ]
+      },
+      body: "<p>W pierwszym terminalu, równolegle, zleć zgłoszenie #7. Obie sesje pracują jednocześnie na różnych plikach i gałęziach.</p>",
+      prompts: ["Rozwiąż zgłoszenie #7 z ISSUES.md. Przykłady w README skopiuj z prawdziwych uruchomień komend. Zrób commit."],
+      commands: []
+    },
+    {
+      id: "m10t4", title: "Scal i posprzątaj",
+      magic: {
+        body: "<p>Gdy obaj subagenci skończą, połącz ich pracę w jedną wersję projektu i sprawdź, że wszystko działa.</p>",
+        prompts: ["Scal obie gałęzie z worktree do głównej gałęzi, uruchom wszystkie testy i usuń niepotrzebne worktree. Pokaż git worktree list."],
+        commands: []
+      },
+      body: "<p>Gdy sesja B zrobi commit, zakończ ją przez <code>/exit</code> i zdecyduj, czy zachować worktree. W głównym katalogu scal gałąź.</p>",
+      shell: ["git merge worktree-testy-raportow\npytest"],
+      commands: [
+        { cmd: "git merge worktree-nazwa", short: "scala gałąź z worktree",
+          what: "Gałąź z worktree to zwykła gałąź gita: scalasz ją, robisz z niej PR albo ją usuwasz.",
+          tip: "Granica możliwości to Twoja uwaga przy przeglądzie, nie liczba sesji. Dwie przejrzane sesje są lepsze niż dziesięć scalonych w ciemno." }
+      ]
+    }
+  ],
+  done: ["obie zmiany są na głównej gałęzi", "<code>pytest</code> przechodzi po scaleniu", "<code>git worktree list</code> nie pokazuje zbędnych katalogów"]
+},
+{
+  id: "m11", title: "Dodatkowo: automatyzacja i egzamin", minutes: 15, bonus: true, issue: "#3",
+  goal: "Dla tych, którzy skończyli wcześniej: Claude bez trybu interaktywnego i samodzielne zgłoszenie z użyciem wszystkiego, czego się nauczyłeś.",
+  tasks: [
+    {
+      id: "m11t1", title: "Tryb nieinteraktywny",
+      magic: {
+        body: "<p><code>claude -p</code> to Claude bez okna rozmowy: jedno polecenie, jedna odpowiedź. Tak działa w skryptach i automatyzacjach. Poproś Claude, żeby pokazał to na przykładzie.</p>",
+        prompts: ["Uruchom w terminalu: claude -p \"Wypisz kody rabatowe z src/shopcart/discounts.py jako listę JSON\" --output-format json. Wyjaśnij mi wynik i podaj dwa przykłady, do czego zespół mógłby użyć takiego wywołania."]
+      },
+      body: "<p>Te same możliwości, jedno polecenie, wynik na standardowe wyjście. Tak Claude działa w skryptach i CI.</p>",
+      shell: ["claude -p \"Wypisz kody rabatowe z src/shopcart/discounts.py jako listę JSON\" --output-format json", "git log --oneline -10 | claude -p \"Napisz z tego krótki changelog po polsku\""],
+      commands: [
+        { cmd: "claude -p \"prompt\"", short: "jedno zapytanie bez sesji interaktywnej",
+          what: "Wykonuje prompt i kończy działanie. Można przekazać dane potokiem (<code>|</code>).",
+          tip: "Bez ustawionego trybu akcje wymagające zgody są odrzucane. Do edycji podaj dokładną listę: <code>--allowedTools \"Edit,Bash(pytest *)\" --permission-mode dontAsk</code>." },
+        { cmd: "--output-format json", short: "wynik jako JSON do dalszego przetwarzania",
+          what: "Zwraca obiekt z polem <code>result</code>. Wariant <code>stream-json</code> wypisuje zdarzenia na bieżąco.", tip: "" }
+      ]
+    },
+    {
+      id: "m11t2", title: "Egzamin: zgłoszenie #3 samodzielnie",
+      body: "<p>Rozwiąż #3 (kod 3ZA2) bez gotowych promptów. Sugerowana droga: <code>/clear</code>, plan, testy najpierw, implementacja, recenzja <code>@\"test-reviewer (agent)\"</code>, commit.</p>",
+      commands: []
+    },
+    {
+      id: "m11t3", title: "Rzut oka na MCP",
+      magic: {
+        prompts: ["/mcp", "Do jakich narzędzi, z których korzysta zespół, warto byłoby podłączyć Claude przez MCP? Wyjaśnij prostym językiem, czym MCP różni się od zwykłego narzędzia w terminalu."]
+      },
+      body: "<p>MCP łączy Claude z zewnętrznymi systemami (issue tracker, baza, Figma). Najpierw sprawdź, czy wystarczy narzędzie CLI, np. <code>gh</code>: jest tańsze w kontekście.</p>",
+      shell: ["claude mcp list"],
+      commands: [
+        { cmd: "claude mcp add --transport http nazwa URL", short: "dodaje zdalny serwer MCP",
+          what: "Rejestruje serwer. Zakres <code>--scope project</code> zapisuje go w <code>.mcp.json</code> dla całego zespołu.",
+          tip: "Serwer MCP działa z Twoimi uprawnieniami. Instaluj tylko zaufane serwery i używaj kont z minimalnymi uprawnieniami." },
+        { cmd: "/mcp", short: "stan serwerów, logowanie, wyłączanie",
+          what: "Panel w sesji: status połączeń, logowanie OAuth, włączanie i wyłączanie serwerów.", tip: "" }
+      ]
+    }
+  ],
+  done: ["kod 3ZA2 działa z testami dla 2, 3, 6 i 7 sztuk", "znasz <code>claude -p</code> jako punkt wejścia do automatyzacji"]
+}
+];
+
+/* ---------- stan ---------- */
+const STORE_KEY = "shopcart-warsztat-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(STORE_KEY) || "{}") || {}; } catch (e) { state = {}; }
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* bez zapisu */ } }
+
+const el = (tag, cls, html) => { const n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n; };
+
+function copyButton(getText) {
+  const b = el("button", "copy", "Kopiuj");
+  b.type = "button";
+  b.addEventListener("click", async () => {
+    const text = getText();
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {
+      const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+      ta.select(); try { document.execCommand("copy"); } catch (err) {} ta.remove();
+    }
+    b.textContent = "Skopiowano"; b.classList.add("ok");
+    setTimeout(() => { b.textContent = "Kopiuj"; b.classList.remove("ok"); }, 1400);
+  });
+  return b;
+}
+
+function block(kind, label, text) {
+  const wrap = el("div", "prompt " + kind);
+  wrap.appendChild(el("div", "prompt-label")).textContent = label;
+  const pre = el("pre"); pre.textContent = text; wrap.appendChild(pre);
+  wrap.appendChild(copyButton(() => text));
+  return wrap;
+}
+
+function commandItem(c) {
+  const d = el("details", "cmd");
+  const s = el("summary");
+  const code = el("code"); code.textContent = c.cmd;
+  s.appendChild(code);
+  s.appendChild(el("span", "short")).textContent = c.short;
+  d.appendChild(s);
+  const body = el("div", "cmd-body");
+  body.appendChild(el("p", "what", "<strong>Co robi:</strong> " + c.what));
+  if (c.tip) body.appendChild(el("p", "tip", "<strong>Wskazówka:</strong> " + c.tip));
+  d.appendChild(body);
+  return d;
+}
+
+/* ---------- render ---------- */
+const modulesRoot = document.getElementById("modules");
+const rail = document.getElementById("rail");
+const budget = document.getElementById("budget");
+const cheat = [];
+const cheatIndex = new Map();
+function noteCmd(c, mod, bonus, variant) {
+  let row = cheatIndex.get(c.cmd);
+  if (!row) { row = { c, mod, bonus, variants: new Set() }; cheatIndex.set(c.cmd, row); cheat.push(row); }
+  row.variants.add(variant);
+}
+
+MODULES.forEach((m, idx) => {
+  const sec = el("section", "module" + (m.bonus ? " is-bonus" : ""));
+  sec.id = m.id;
+  const head = el("div", "mod-head");
+  head.appendChild(el("div", "mod-num")).textContent = String(idx);
+  head.appendChild(el("h2")).textContent = m.title;
+  const meta = el("div", "mod-meta");
+  meta.appendChild(el("span")).textContent = m.minutes + " min";
+  if (m.issue) meta.appendChild(el("span")).textContent = "Zgłoszenie " + m.issue;
+  if (m.bonus) meta.appendChild(el("span", "tag")).textContent = "Moduł dodatkowy";
+  head.appendChild(meta);
+  head.appendChild(el("p", "goal")).textContent = m.goal;
+  sec.appendChild(head);
+
+  m.tasks.forEach((t) => {
+    const card = el("article", "task");
+    const th = el("div", "task-head");
+    const cb = el("input"); cb.type = "checkbox"; cb.id = t.id; cb.checked = !!state[t.id];
+    const lab = el("label"); lab.htmlFor = t.id;
+    th.append(cb, lab);
+    card.appendChild(th);
+    const renderBody = (spec, variant) => {
+      const body = el("div", "task-body", spec.body || "");
+      (spec.shell || []).forEach((s) => body.appendChild(block("shell", "W terminalu", s)));
+      (spec.prompts || []).forEach((p) => body.appendChild(block("", p.startsWith("!") || p.startsWith("/") ? "W sesji Claude" : "Prompt dla Claude", p)));
+      (spec.files || []).forEach((f) => body.appendChild(block("file", f.label, document.getElementById(f.id).textContent.trim() + "\n")));
+      if (spec.commands && spec.commands.length) {
+        const list = el("div", "cmds");
+        spec.commands.forEach((c) => {
+          list.appendChild(commandItem(c));
+          noteCmd(c, idx, !!m.bonus, variant);
+        });
+        body.appendChild(list);
+      }
+      return body;
+    };
+    if (t.magic) {
+      const mg = t.magic;
+      const spec = {
+        title: mg.title || t.title, body: mg.body ?? t.body, shell: mg.shell || [],
+        prompts: mg.prompts ?? t.prompts, files: mg.files ?? t.files, commands: mg.commands ?? t.commands
+      };
+      lab.append(el("span", "v-dev"), el("span", "v-magic"));
+      lab.children[0].textContent = t.title;
+      lab.children[1].textContent = spec.title;
+      const devBody = renderBody(t, "dev"); devBody.classList.add("v-dev");
+      const magicBody = renderBody(spec, "magic"); magicBody.classList.add("v-magic");
+      card.append(devBody, magicBody);
+    } else {
+      lab.textContent = t.title;
+      card.appendChild(renderBody(t, "both"));
+    }
+    if (cb.checked) card.classList.add("checked");
+    cb.addEventListener("change", () => {
+      state[t.id] = cb.checked; save();
+      card.classList.toggle("checked", cb.checked);
+      update();
+    });
+    sec.appendChild(card);
+  });
+
+  const done = el("div", "done-box");
+  done.appendChild(el("h3")).textContent = "Gotowe, gdy:";
+  const ul = el("ul"); m.done.forEach((d) => ul.appendChild(el("li", null, d)));
+  done.appendChild(ul);
+  sec.appendChild(done);
+  modulesRoot.appendChild(sec);
+
+  const li = el("li", m.bonus ? "bonus" : "");
+  li.dataset.mod = m.id;
+  li.innerHTML = '<a href="#' + m.id + '"><span class="n"><span>' + idx + '</span></span><span></span><span class="m">' + m.minutes + "′</span></a>";
+  li.querySelector("a span:nth-child(2)").textContent = m.title;
+  rail.appendChild(li);
+
+  const seg = el("a", "seg" + (m.bonus ? " bonus" : ""));
+  seg.href = "#" + m.id; seg.dataset.mod = m.id; seg.style.flex = String(m.minutes);
+  seg.title = idx + ". " + m.title + " (" + m.minutes + " min)";
+  seg.innerHTML = '<div class="fill"></div><span>' + idx + "</span>";
+  budget.appendChild(seg);
+});
+
+const cheatBody = document.getElementById("cheat-body");
+cheat.forEach(({ c, mod, bonus, variants }) => {
+  const inDev = variants.has("dev") || variants.has("both");
+  const inMagic = variants.has("magic") || variants.has("both");
+  const tr = el("tr", inDev && !inMagic ? "v-dev" : !inDev && inMagic ? "v-magic" : null);
+  if (bonus) tr.dataset.bonus = "1";
+  const td1 = el("td"); const code = el("code"); code.textContent = c.cmd; td1.appendChild(code);
+  const td2 = el("td"); td2.textContent = c.short;
+  const td3 = el("td", "mod"); td3.textContent = String(mod);
+  tr.append(td1, td2, td3);
+  cheatBody.appendChild(tr);
+});
+
+/* ---------- postęp ---------- */
+const showBonus = document.getElementById("show-bonus");
+showBonus.checked = !!state._bonus;
+
+function update() {
+  const visible = MODULES.filter((m) => !m.bonus || showBonus.checked);
+  let doneTasks = 0, allTasks = 0, doneMin = 0, allMin = 0;
+  MODULES.forEach((m) => {
+    const hidden = Boolean(m.bonus) && !showBonus.checked;
+    const total = m.tasks.length;
+    const done = m.tasks.filter((t) => state[t.id]).length;
+    const complete = done === total;
+    if (!hidden) {
+      allTasks += total; doneTasks += done; allMin += m.minutes;
+      doneMin += m.minutes * (done / total);
+    }
+    document.getElementById(m.id).classList.toggle("hidden", hidden);
+    document.getElementById(m.id).classList.toggle("done", complete);
+    const seg = budget.querySelector('[data-mod="' + m.id + '"]');
+    seg.classList.toggle("hidden", hidden);
+    seg.classList.toggle("done", complete);
+    seg.querySelector(".fill").style.width = (100 * done / total) + "%";
+    const li = rail.querySelector('[data-mod="' + m.id + '"]');
+    li.classList.toggle("hidden", hidden);
+    li.classList.toggle("done", complete);
+  });
+  cheatBody.querySelectorAll("tr[data-bonus]").forEach((tr) => { tr.hidden = !showBonus.checked; });
+  document.getElementById("progress-text").textContent = "Ukończono " + doneTasks + " z " + allTasks + " zadań";
+  document.getElementById("clock").textContent = "ok. " + Math.round(doneMin) + " z " + allMin + " min";
+}
+showBonus.addEventListener("change", () => { state._bonus = showBonus.checked; save(); update(); });
+document.getElementById("reset").addEventListener("click", () => {
+  if (!confirm("Wyczyścić zaznaczone zadania?")) return;
+  state = { _bonus: showBonus.checked }; save();
+  document.querySelectorAll(".task input").forEach((i) => { i.checked = false; i.closest(".task").classList.remove("checked"); });
+  update();
+});
+document.getElementById("theme").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  state._theme = root.dataset.theme; save();
+});
+if (state._theme) document.documentElement.dataset.theme = state._theme;
+
+/* ---------- tryb Dev / Magician ---------- */
+const MODE_NOTES = {
+  dev: "Konfigurujesz środowisko i sprawdzasz wyniki komendami w terminalu. Oba tryby prowadzą do tych samych wyników, a postęp jest wspólny.",
+  magic: "Mówisz Claude, co ma być zrobione, a on sam uruchamia komendy i pokazuje wyniki. Te same zadania, ten sam efekt. Tryb możesz zmienić w każdej chwili."
+};
+function setMode(mode) {
+  document.documentElement.dataset.mode = mode;
+  document.querySelectorAll(".mode button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.mode === mode)));
+  document.getElementById("mode-note").textContent = MODE_NOTES[mode];
+  state._mode = mode; save();
+}
+document.querySelectorAll(".mode button").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+document.querySelector(".mode").addEventListener("keydown", (e) => {
+  if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+  const next = document.documentElement.dataset.mode === "magic" ? "dev" : "magic";
+  setMode(next); document.querySelector('.mode button[data-mode="' + next + '"]').focus();
+});
+setMode(state._mode === "magic" ? "magic" : "dev");
+update();
+</script>
+</body>
+</html>
